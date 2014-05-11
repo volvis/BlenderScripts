@@ -4,10 +4,8 @@ a) Displaying the deformer bones for skinning
 b) Displaying the controller objects for posing
 """
 
-import bpy
-
 class VToggleRigifyDeformingBones(bpy.types.Operator):
-    bl_idname = "ops.toggle_deforming_bones"
+    bl_idname = "aijai.toggle_deforming_bones"
     bl_label = "Toggle Deforming Bones (Rigify)"
     
     def execute(self, context):
@@ -17,18 +15,19 @@ class VToggleRigifyDeformingBones(bpy.types.Operator):
                 controls = armature.layers[29]
                 for layer in control_layers:
                     armature.layers[layer] = controls
-                armature.layers[29] = not controls
+                armature.layers[29] = not controls 
         return {'FINISHED'}
 
 class VSkinningPanel(bpy.types.Panel):
     bl_label = "Skinning"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-
+    bl_context = 'objectmode'
+    
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.operator("ops.toggle_deforming_bones")
+        row.operator("aijai.toggle_deforming_bones")
 
 
 def register():
@@ -36,7 +35,7 @@ def register():
 
 
 def unregister():
-    bpy.utils.register_module(__name__)
+    bpy.utils.unregister_module(__name__)
 
 
 if __name__ == "__main__":
