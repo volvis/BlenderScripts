@@ -1,25 +1,19 @@
 import bpy
 import math
 
-rig_id = "Rigify-Mecanim"
+rig_id = "RigifyMecanim"
 rigify_instance = None
 
 def get_mecanim_armature ():
     global rig_id
-    armatures = [armature for armature in bpy.data.armatures if armature.get(rig_id) == True]
-    if len(armatures) == 0: # No such armature data, create new
-        bpy.ops.object.add(type='ARMATURE', location=(0,0,0))
-        bpy.context.active_object.data[rig_id] = True
-    else:
-        if armatures[0].users == 0: # Armature data not linked to scene
-            obj = bpy.data.objects.new(rig_id, armatures[0])
-            bpy.context.scene.objects.link(obj)
+    for obj in bpy.context.scene.objects:
+        if obj.type == 'ARMATURE' and obj.data.get(rig_id) == True:
             bpy.context.scene.objects.active = obj
-        else: # In scene, find it
-            for obj in bpy.context.scene.objects:
-                if obj.type == 'ARMATURE' and obj.data.get(rig_id) == True:
-                    bpy.context.scene.objects.active = obj
-                    return
+            obj.select = True
+            bpy.ops.object.delete()
+    bpy.ops.object.add(type='ARMATURE', location=(0,0,0))
+    bpy.context.active_object.data[rig_id] = True
+
 
 def get_rigify_armature():
     global rigify_instance
@@ -57,41 +51,14 @@ def create_bone(bone_name, bone_head, bone_tail, bone_parent=None):
     b.tail = bone_tail["tail"]
     b.roll = bone_head["roll"]
     if bone_parent != None:
+        #bpy.context.object.data.use_connect = False
         b.parent = bpy.context.active_object.data.edit_bones[bone_parent]
     con = bpy.context.object.pose.bones[bone_name].constraints.new('COPY_TRANSFORMS')
     con.target = get_rigify_armature()
     con.subtarget = bone_head["name"]
 
-if bpy.context.mode != 'OBJECT':
-    bpy.ops.object.editmode_toggle()
 
-bpy.context.scene.objects.active = get_rigify_armature()
-bpy.ops.object.editmode_toggle()
-
-original = {}
-for bone in bpy.context.active_object.data.edit_bones:
-    original[bone.name] = {
-        "name": bone.name,
-        "head": bone.head,
-        "tail": bone.tail,
-        "roll": bone.roll
-    }
-
-bpy.ops.object.editmode_toggle()
-
-get_mecanim_armature()
-
-bpy.ops.object.editmode_toggle()
-bpy.ops.armature.select_all(action='SELECT')
-bpy.ops.armature.delete()
-
-create_bone(mec("hips"), original["DEF-hips"], original["DEF-hips"])
-create_bone(mec("spine"), original["DEF-spine"], original["DEF-spine"], mec("hips"))
-create_bone(mec("chest"), original["DEF-chest"], original["DEF-chest"], mec("spine"))
-create_bone(mec("neck"), original["DEF-neck"], original["DEF-neck"], mec("chest"))
-create_bone(mec("head"), original["DEF-head"], original["DEF-head"], mec("neck"))
-
-def create_finger(side, name, original_name):
+def create_finger(side, name, original_name, original):
     hand = mec("hand."+side)
     f1 = mec(name+".01."+side)
     f2 = mec(name+".02."+side)
@@ -100,7 +67,7 @@ def create_finger(side, name, original_name):
     create_bone(f2, original["DEF-"+original_name+".02."+side], original["DEF-"+original_name+".02."+side], f1)
     create_bone(f3, original["DEF-"+original_name+".03."+side], original["DEF-"+original_name+".03."+side], f2)
 
-def create_arm(side="L"):
+def create_arm(side, original):
     shoulder = mec("shoulder."+side)
     upperarm = mec("upper_arm."+side)
     forearm = mec("forearm."+side)
@@ -111,13 +78,13 @@ def create_arm(side="L"):
     create_bone(forearm, original["DEF-forearm.01."+side], original["DEF-forearm.02."+side], upperarm)
     create_bone(hand, original["DEF-hand."+side], original["DEF-hand."+side], forearm)
     
-    create_finger(side, "thumb", "thumb")
-    create_finger(side, "index", "f_index")
-    create_finger(side, "middle", "f_middle")
-    create_finger(side, "ring", "f_ring")
-    create_finger(side, "pinky", "f_pinky")
+    create_finger(side, "thumb", "thumb", original)
+    create_finger(side, "f_index", "f_index", original)
+    create_finger(side, "f_middle", "f_middle", original)
+    create_finger(side, "f_ring", "f_ring", original)
+    create_finger(side, "f_pinky", "f_pinky", original)
 
-def create_leg(side="L"):
+def create_leg(side, original):
     thigh = mec("thigh."+side)
     shin = mec("shin."+side)
     foot = mec("foot."+side)
@@ -127,9 +94,44 @@ def create_leg(side="L"):
     create_bone(foot, original["DEF-foot."+side], original["DEF-foot."+side], shin)
     create_bone(toe, original["DEF-toe."+side], original["DEF-toe."+side], foot)
 
+def create_mecanim():
+    bpy.ops.object.select_all(action='DESELECT')
+    if bpy.context.mode != 'OBJECT':
+        bpy.ops.object.editmode_toggle()
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.scene.objects.active = get_rigify_armature()
+    bpy.ops.object.editmode_toggle()
+    
+    original = None
+    original = {}
+    for bone in bpy.context.active_object.data.edit_bones:
+        original[bone.name] = { "name": bone.name, "head": bone.head, "tail": bone.tail, "roll": bone.roll}
+        del bone
 
-create_leg("L")
-create_leg("R")
+    bpy.ops.object.editmode_toggle()
 
-create_arm("L")
-create_arm("R")
+    get_mecanim_armature()
+
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.armature.select_all(action='SELECT')
+    bpy.ops.armature.delete()
+
+    create_bone(mec("hips"), original["DEF-hips"], original["DEF-hips"])
+    create_bone(mec("spine"), original["DEF-spine"], original["DEF-spine"], mec("hips"))
+    create_bone(mec("chest"), original["DEF-chest"], original["DEF-chest"], mec("spine"))
+    
+
+    create_leg("L", original)
+    create_leg("R", original)
+
+    create_arm("L", original)
+    create_arm("R", original)
+    
+    create_bone(mec("neck"), original["DEF-neck"], original["DEF-neck"], mec("chest"))
+    create_bone(mec("head"), original["DEF-head"], original["DEF-head"], mec("neck"))
+    
+    bpy.ops.object.editmode_toggle()
+    del original
+
+
+create_mecanim()
