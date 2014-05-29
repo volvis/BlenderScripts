@@ -102,11 +102,9 @@ def create_mecanim():
     bpy.context.scene.objects.active = get_rigify_armature()
     bpy.ops.object.editmode_toggle()
     
-    original = None
     original = {}
     for bone in bpy.context.active_object.data.edit_bones:
         original[bone.name] = { "name": bone.name, "head": bone.head, "tail": bone.tail, "roll": bone.roll}
-        del bone
 
     bpy.ops.object.editmode_toggle()
 
@@ -119,7 +117,6 @@ def create_mecanim():
     create_bone(mec("hips"), original["DEF-hips"], original["DEF-hips"])
     create_bone(mec("spine"), original["DEF-spine"], original["DEF-spine"], mec("hips"))
     create_bone(mec("chest"), original["DEF-chest"], original["DEF-chest"], mec("spine"))
-    
 
     create_leg("L", original)
     create_leg("R", original)
@@ -131,7 +128,6 @@ def create_mecanim():
     create_bone(mec("head"), original["DEF-head"], original["DEF-head"], mec("neck"))
     
     bpy.ops.object.editmode_toggle()
-    del original
 
 
 create_mecanim()
