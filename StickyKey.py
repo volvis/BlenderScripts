@@ -234,7 +234,7 @@ class LockTransform(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        return (context.active_object != None and context.active_object != SetAsMaster.master and SetAsMaster.master != None)
+        return (context.active_object != None and SetAsMaster.master != None)
     
     def execute(self, context):
         self.__class__.matrix = SetAsMaster.get_local_matrix(context)
@@ -260,7 +260,7 @@ class LockTransformEnd(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        return (context.active_object != None and SetAsMaster.master != None and context.active_object != SetAsMaster.master and LockTransform.matrix != None and context.scene.frame_current > context.scene.frame_start)
+        return (context.active_object != None and SetAsMaster.master != None and LockTransform.matrix != None and context.scene.frame_current > context.scene.frame_start)
     
     def execute(self, context):
         self.__class__.matrix = SetAsMaster.get_local_matrix(context)
