@@ -1,6 +1,17 @@
 import bpy
 from mathutils import Matrix
 
+
+bl_info = {
+    "name": "Transform Storage",
+    "description": "Store and copy object/bone transformations",
+    "author": "Pekka Heikkinen",
+    "version": (1, 0),
+    "location": "VIEW_3D > Tools > Animation",
+    "category": "Animation"
+}
+
+
 stored_transform = None
 
 class StoreTransform(bpy.types.Operator):
