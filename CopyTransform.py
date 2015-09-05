@@ -3,12 +3,6 @@ from mathutils import Matrix
 
 stored_transform = None
 
-def get_matrix(context):
-    if context.mode == "OBJECT":
-        return context.active_object.matrix_world
-    elif context.mode == "POSE":
-        return context.active_object.matrix_world * context.active_pose_bone.matrix
-    
 class StoreTransform(bpy.types.Operator):
     bl_idname = "transform.storetransform"
     bl_label = "Store Transform From Active"
@@ -48,15 +42,39 @@ class RetrieveTransform(bpy.types.Operator):
             ao.matrix_world = stored_transform
         return {'FINISHED'}
 
+class RetrieveTransformToCursor(bpy.types.Operator):
+    bl_idname = "transform.retrievetransformtocursor"
+    bl_label = "Retrieve Transform For Cursor"
+    
+    @classmethod
+    def poll(cls, context):
+        global stored_transform
+        return stored_transform != None
+    
+    def execute(self, context):
+        global stored_transform
+        bpy.context.scene.cursor_location = stored_transform.to_translation()
+        return {'FINISHED'}
+
+class TransformStorePanel(bpy.types.Panel):
+    bl_label = "Transform Storage"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = 'Animation'
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row(align=True)
+        row.alignment='EXPAND'
+        row.operator(StoreTransform.bl_idname, text="Store", icon='COPYDOWN')
+        row.operator(RetrieveTransformToCursor.bl_idname, text="", icon='CURSOR')
+        row.operator(RetrieveTransform.bl_idname, text="Retrieve", icon='PASTEDOWN')
+
 def register():
     bpy.utils.register_module(__name__)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
-#######################
-# Stickykey debugging #
-#######################
     
 if __name__ == "__main__":
     register()
