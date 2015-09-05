@@ -31,7 +31,7 @@ class StoreTransform(bpy.types.Operator):
     
     def execute(self, context):
         global stored_transform
-        stored_transform = self.get_matrix_world(context)
+        stored_transform = self.get_matrix_world(context).copy()
         return {'FINISHED'}
     
 
