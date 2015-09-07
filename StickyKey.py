@@ -2,13 +2,13 @@ import bpy
 import math
 from bpy.props import EnumProperty, PointerProperty
 from mathutils import Matrix
-
+from bpy.app.handlers import persistent
 
 bl_info = {
     "name": "Sticky Key",
     "description": "Keyframe temporary parent/child transformations",
     "author": "Pekka Heikkinen",
-    "version": (1, 0),
+    "version": (1, 1),
     "location": "VIEW_3D > Tools > Animation",
     "category": "Animation"
 }
@@ -363,10 +363,12 @@ class StickyKeyPanel(bpy.types.Panel):
 ######################
 # Stickykey handlers #
 ######################
-        
+
+@persistent
 def update_transforms(scene):
     if LockTransform.matrix is not None:
         bpy.ops.stickykey.movetotransform()
+
 
 ##########################
 # Stickykey registration #
@@ -385,7 +387,4 @@ def unregister():
 #######################
     
 if __name__ == "__main__":
-    while len(bpy.app.handlers.frame_change_post) > 0:
-        bpy.app.handlers.frame_change_post.pop()
     register()
-    
