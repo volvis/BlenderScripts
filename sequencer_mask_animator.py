@@ -5,7 +5,7 @@ bl_info = {
     "name": "Mask Animator",
     "description": "Makes the Mask modifier animatable",
     "author": "Pekka Heikkinen",
-    "version": (1, 0),
+    "version": (1, 1),
     "location": "VIEW_3D > Tools > Animation",
     "category": "Animation"
 }
