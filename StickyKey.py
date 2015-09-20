@@ -8,7 +8,7 @@ bl_info = {
     "name": "Sticky Key",
     "description": "Keyframe temporary parent/child transformations",
     "author": "Pekka Heikkinen",
-    "version": (1, 1),
+    "version": (1, 2),
     "location": "VIEW_3D > Tools > Animation",
     "category": "Animation"
 }
@@ -342,7 +342,7 @@ class StickyKeyPanel(bpy.types.Panel):
             return len(context.selected_objects) > 0
         elif context.mode == "POSE":
             return len(context.selected_pose_bones) > 0
-        return false
+        return False
 
     def draw(self, context):
         global params
