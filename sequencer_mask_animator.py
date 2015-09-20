@@ -17,14 +17,20 @@ bl_info = {
 
 @persistent
 def update_masks(scene):
+    sceneDirty = False
     if 'Animated Masks' in bpy.data.groups:
         for object in bpy.data.groups['Animated Masks'].objects:
             if 'MaskIndex' in object and 'Mask' in object.modifiers:
                 if object.MaskIndex < len(object.vertex_groups):
                     object.modifiers["Mask"].vertex_group =  object.vertex_groups[object.MaskIndex].name
+                    sceneDirty = True
+    if sceneDirty:
+        scene.update()
+
 
 def on_update_masks(self, context):
     update_masks(context.scene)
+
 
 bpy.types.Object.MaskIndex = bpy.props.IntProperty(name = "Mask Index", min=0, update=on_update_masks)
 
@@ -98,8 +104,7 @@ def unregister():
 #######################
 
 if __name__ == "__main__":
-    while len(bpy.app.handlers.frame_change_post) > 0:
-        bpy.app.handlers.frame_change_post.pop()
-    while len(bpy.app.handlers.render_pre) > 0:
-        bpy.app.handlers.render_pre.pop()
+    bpy.app.handlers.frame_change_post.clear()
+    bpy.app.handlers.frame_change_pre.clear()
+    bpy.app.handlers.render_pre.clear()
     register()
