@@ -1,6 +1,6 @@
 import bpy
 import math
-from bpy.props import EnumProperty, PointerProperty
+from bpy.props import EnumProperty, PointerProperty, IntProperty
 from mathutils import Matrix
 from bpy.app.handlers import persistent
 
@@ -8,7 +8,7 @@ bl_info = {
     "name": "Sticky Key",
     "description": "Keyframe temporary parent/child transformations",
     "author": "Pekka Heikkinen",
-    "version": (1, 2),
+    "version": (1, 3),
     "location": "VIEW_3D > Tools > Animation",
     "category": "Animation"
 }
@@ -33,6 +33,7 @@ class StickyKeyProperties(bpy.types.PropertyGroup):
         ("In", "In", "", 2),
         ("Out", "Out", "", 3),
         ], name="Dir")
+    tween_interval = IntProperty(default=1, min=1, name="Interval")
     
 bpy.utils.register_class(StickyKeyProperties)
 bpy.types.Scene.stickykey = PointerProperty(type=StickyKeyProperties)
@@ -324,8 +325,9 @@ class TweenAnimationRange(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.anim.keying_set_active_set(type='LocRotScale')
         for fr in range(context.scene.frame_start, context.scene.frame_end+1):
-            context.scene.frame_set(fr)
-            bpy.ops.anim.keyframe_insert()
+            if fr == context.scene.frame_start or fr == context.scene.frame_end+1 or fr % context.scene.stickykey.tween_interval == 0:
+                context.scene.frame_set(fr)
+                bpy.ops.anim.keyframe_insert()
         bpy.ops.stickykey.release()
         return {'FINISHED'}
 
@@ -349,16 +351,25 @@ class StickyKeyPanel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
         row = layout.row()
-        row.operator(SetAsMaster.bl_idname)
+        if SetAsMaster.master != None:
+            masterName = "Master: " +SetAsMaster.master.name
+            if SetAsMaster.bone != None:
+                masterName += " ({0})".format(SetAsMaster.bone.name)
+            row.operator(SetAsMaster.bl_idname, text=masterName, icon='PINNED')
+        else:
+            row.operator(SetAsMaster.bl_idname, icon='UNPINNED')
         row = layout.row(align=True)
         row.operator(LockTransform.bl_idname, text="Set Start")
-        row.operator(LockTransformEnd.bl_idname, text="Set End")
         row.operator(UnlockTransform.bl_idname, text="Release")
+        row.operator(LockTransformEnd.bl_idname, text="Set End")
+        
         row = layout.row()
         row.prop(scene.stickykey, "tween", text="")
         if scene.stickykey.tween != "linearTween":
             row.prop(scene.stickykey, "tween_dir", text="")
-        row.operator(TweenAnimationRange.bl_idname)
+        row.prop(scene.stickykey, "tween_interval", text="")
+        row = layout.row()
+        row.operator(TweenAnimationRange.bl_idname, text="Bake", icon='REC')
 
 ######################
 # Stickykey handlers #
