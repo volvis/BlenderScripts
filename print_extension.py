@@ -18,7 +18,7 @@ def print(str, clear=False, log_name='_LOG_', log_format="{0}\n"):
         log_target.clear()
     out = log_format.format(str)
     log_target.write(out)
-    ___print(out)
+    ___print(str)
 
 def register():
     pass
